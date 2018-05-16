@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>第二章：Ajax的通信方式</title>
+</head>
+<body>
+	<script>
+		//1.在服务器端生成JavaScript
+		//当服务器通过Ajax请求返回HTML时，我们可以在运行时生成复杂的用户界面，但它们在很大程度上还是静态的。与应用的任何一次重要交互都需要和服务器进行进一步的通信。在多数情况下，这没有什么问题，但有些时候，不仅要交付内容，还要把行为交付给客户端。客户端行为有JavaScript驱动，所以一种可行的方法就是由服务器生成JavaScript。
+		//1.1执行由服务器生成的代码
+		//在处理服务器生成的HTML时，使用innerHTML就行了。而在处理服务器生成的JavaScript时，类似的，我们可以使用eval()方法。JavaScript是一种解释型语言，并且任何一个文本片段都可以拿来进行求值运算，也就是当做代码来执行。使用eval()几乎和使用innerHTML一样简单。
+		eval(xhr.responseText)
+		//1.2遵循代码生成的实践准则
+		//当在服务器生成JavaScript时，我们正在实践代码生成。代码生成技术本身就是个令人感兴趣的话题，有一套自己的惯例和准则，其中一条基本准则就是总是尽可能针对最高的层面来生成代码。
+		//在服务器上编写低层面的JavaScript会导致在服务器和客户端代码之间产生不可接受的紧耦合，这会令我们的应用难以扩展并愈加脆弱。
+		
+		//2.JSON
+		//JSON是一种轻量级的数据交互格式，各种不同的服务器端技术以及JavaScript本身都可以很容易地生成和解析JSON。作为一个完整的数据交换格式，它可以在活对象和用于交换的格式之间进行双向转译。
+		//JSON.stringfy(obj)将对象转化成JSON
+		//JSON.parse(json)将JSON转化为对象
+		
+		//3.在Ajax中使用XML和XSLT
+	</script>
+</body>
+</html>

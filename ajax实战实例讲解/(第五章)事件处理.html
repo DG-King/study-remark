@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>第五章：事件处理</title>
+</head>
+<body>
+	<script>
+		//事件冒泡和事件捕获
+		//三种不同的世界处理模型：
+		//1.基本事件模型，也被非正式成为DOM Level 0事件，简单直接且跨平台
+		//2.DOM Leavel 2事件模型，它更灵活，遵从标准的浏览器如Firefox、Mozilla和Safari等支持它，但是IE不支持。
+		//3.IE事件模型，功能上类似于DOM Level 2事件模型，但顾名思义，是IE浏览器专有的。
+		
+		//基本的事件处理注册
+		//在基本模型下有两种方式可以指派事件处理器：
+		//1.HTML标记内嵌法，用到HTML元素上的相关事件属性(attribute)。缺点：结构和行为无法分离，应该尽量避免。优点：跨不同浏览器通用。
+		//2.脚本操作法，用到DOM元素对象上的相关属性(propety)。
+		//虽然DOM 0事件模型还算灵活，但是也有很大的局限性。比如，不太容易让多个JavaScript方法串联单个事件。
+		
+		//DOM 2级事件模型(可以给一个元素绑定多个事件)
+		//对于遵从DOM 2级事件模型的浏览器来说，每个DOM元素上都有叫做addEventListener()的方法，可以调用它来给元素添加事件处理器。该方法有三个参数：第一个参数是字符串，用来声明事件的类型，第二个是索要执行的事件处理器函数（也称作监听器，listener），最后一个是布尔值，表示是否启用事件捕获。
+		//事件类型参数是一个字符串，包含所要观察的事件类型的名字。事件属性名去掉前缀on即为事件类型名，例如，click和mouseover。比如：
+		window.onload = function() {
+			document.getElementById('A').addEventListener('click', function() { alert('hello') }, false);
+			document.getElementById('A').addEventListener('click', function() { alert('hello again') }, false);
+		}
+		//如果要移除元素上的事件处理器，可以调用DOM元素上的removeEventListener()方法。
+		//微软专有的事件方法（attach），在概念上也是类似的，但是实现上不同。它使用一个名为attachEvent()的方法为DOM元素安置事件处理器。该方法有两个参数：事件名称和所要执行的事件处理器。与addEventListener()方法所用的事件类型不同，attachEvent()方法需要的是包含on前缀的事件属性名称。结合两种兼容，如:
+		window.onload = function() {
+			if(document.getElementById('A').attachEvent) {
+				document.getElementById('A').attachEvent('onclick', function() { alert('hello') });
+				document.getElementById('A').attachEvent('onclick', function() { alert('hello again') });
+			}else {
+				document.getElementById('A').addEventListener('onclick', function() { alert('hello') });
+				document.getElementById('A').addEventListener('onclick', function() { alert('hello again') });
+			}
+		}
+		//onload事件处理器中的首行代码检测应该使用哪个方法来添加事件。注意这种测试被称为对象检测。它并不是测试是哪一种浏览器，而是检测元素上是否存在attachEvent()方法。如果该方法存在，我们就使用它，否则就用DOM2级事件。
+		
+		//Event对象与事件传播机制
+		//1.Event对象
+		//当触发某个事件时，会产生一个Event类的实例，它包含描述事件的若干属性。在事件处理器中，我们通常会访问该Event对象并读取想要的属性。
+		//对于遵从标准的浏览器来说，浏览器在执行事件处理器时，会将该Event对象实例作为第一个参数传入事件处理器函数。在IE中，则可通过窗口对象的event属性来读取该对象实例(也可以将event看做一个全局变量)。如：
+		window.onload = function() {
+			document.getElementById('A').onclick = function(event) {
+				if(!event) {
+					event = window.event;
+					var target = event.target ? event.target : event.srcElement;
+				}
+			}
+		}
+		//我们首先检查事件处理器函数的event参数是否已定义，如果未定义，就拷贝窗口对象上的event属性，因为IE把Event对象放在那里。由此，我们确保得到一个Event实例的引用。
+		//然后，我们要获得目标元素的引用，也就是事件是为哪个元素所产生的。同样的，由于IE与标准的浏览器对Event类的定义不同，我们需要为特定浏览器做特定处理。
+		//我们检测标准的target属性，如果没有定义，就使用IE专有的srcElement属性。
+		//2.事件的传播
+		//在遵从DOM 2级事件模型的浏览器中，一个事件被触发后，会包含三个处理阶段。这三个阶段按先后顺序分别叫捕获阶段、目标阶段和冒泡阶段。
+		//停止事件传播:stopPropagation() || cancelBubble = true;
+		//阻止默认:
+		//在DOM 0级模型中，事件处理器可以return false来取消默认操作。在DOM 2级中，preventDefault() || returnValue = false;
+		
+		//事件类型
+		//1.鼠标事件
+		//常见的鼠标事件：mouseup/mousedown/click/dbclick/mouseove。
+		//2.键盘事件
+		//常见的键盘事件包括keyup、keydown。
+		//3.change事件
+		//控制文本框的输入，实时监控文本框（如果只是tab切换光标的话则不会触发该事件）
+		//4.页面事件
+		//文档加载、卸载、改变窗口大小、滚动等，都会产生页面事件
+	</script>
+</body>
+</html>

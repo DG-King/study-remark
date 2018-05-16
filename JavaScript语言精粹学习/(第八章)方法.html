@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>第八章：方法</title>
+</head>
+<body>
+	<script>
+		//1.Array
+		Array.concat(item...)
+		//concat方法返回一个新数组，它包含array的浅复制并将一个或多个参数item附加在其后。如果参数item是一个数组，那么它的每个元素都会被分别添加。
+		var a = ['a', 'b', 'c'];
+		var b = ['x', 'y', 'z'];
+		var c = a.concat(b, true);  
+		//c是['a', 'b', 'c', 'x', 'y', 'z', true];
+		Array.join(separator)
+		//join方法把一个array构成一个字符串。它将array中的每个元素构造成一个字符串，并用一个separator为分隔符把它们连接在一起。默认的separator是','。为了实现无间隔的连接，我们可以使用空字符串作为separator。
+		//如果你想把大量的片段组装成一个字符串，把这些片段放到一个数组中并用join方法连接它们通常比用一个元素运算符连接这些片段要快。
+		var a = ['a', 'b', 'c'];
+		a.push('d');
+		var c = a.join('');
+		//c是'abcd'
+		Array.pop()
+		//pop和push方法使数组array像堆栈一样工作。pop方法移除array中的最后一个元素并返回该元素。如果该array是空的，它会返回undefined。
+		var a = ['a', 'b', 'c'];
+		var c = a.pop();// a是['a', 'b']  c是'c'
+		//pop可以像这样实现：
+		Array.method('pop', function() {
+			return this.splice(this.length - 1, 1)[0];
+		})
+		Array.push(item...)
+		//push方法将一个或多个参数item附加到一个数组的尾部。不像concat方法那样，它会修改该数组array，如果参数item是一个数组，它会将参数数组作为单个元素添加到数组中。它返回这个数组array的新长度。
+		var a = ['a', 'b', 'c'];
+		var b = ['x', 'y', 'z'];
+		var c = a.push(b, true);
+		//a是['a', 'b', 'c', ['x', 'y', 'z'], true]
+		//c是5;
+		//push可以这样实现：
+		Array.method('push', function() {
+			this.splice.apply(
+				this,
+				[this.length, 0].concat(Array.prototype.slice.apply(arguments));
+				return this.length;
+			)
+		})
+		Array.reverse()
+		//reverse方法反转array中的元素的顺序。它返回当前的array：
+		var a = ['a', 'b', 'c'];
+		var b = a.reverse();
+		//a和b都是['c', 'b', 'a'];
+		Array.shift()
+		//shift方法移除数组array中的第一个元素并返回该元素。如果这个数组array是空的，它会返回undefined。shift通常比pop慢得多：
+		var a = ['a', 'b', 'c'];
+		var c = a.shift();
+		//a 是['b', 'c']  c是'a'
+		Array.slice(start, end)
+		//slice方法对array中的一段做浅复制。第一个被复制的元素是array[start]。它将一直复制到array[end]为止。end参数是可选的，并且默认值是该数组的长度array.length。如果两个参数中的任意一个是负数，array.length将和它们相加使它们成为非负数。如果start大于等于array.length，得到的结果将是一个新的空数组。
+		var a = ['a', 'b', 'c'];
+		var b = a.slice(0, 1); //b是['a']
+		var c = a.slice(1); //c是['b', 'c']
+		var d = a.slice(1, 2); // c是['b']
+		Array.sort(comparefn)
+		//sort方法对array中的内容进行适当的排序。它不能正确地给一组数组排序：
+		var n = [4, 8, 15, 16, 23, 42];
+		n.sort(); //n是[15, 16, 23, 4, 42, 8];
+		//JS的默认比较函数假定所有要被排序的元素都是字符串。它尚未足够智能到在比较这些元素之前先检测它们的类型，所以当它比较这些数字的时候会将它们转化为字符串，导致得到一个令人吃惊的错误结果。
+		//幸运的是，你可以使用自己的比较函数来替代默认的比较函数。你的比较函数应该接受两个参数，并且如果这两个参数相等则返回0，如果第一个参数应该排列在前面，则返回一个负数，如果第二个参数应该排列在前面，则返回一个正数。
+		n.sort(function(a, b) {
+			return a - b;
+		})
+		//n 是[4,8,15,16,23,42]
+		//上面的函数将给数字排序，但它不能给字符串排序。如果我们想要给任何简单值数组排序，则必须做更多的工资：
+		var m = ['aa', 'bb', 'a', 4, 8, 15, 16, 23, 42];
+		m.sort(function(a, b) {
+			if(a === b) {
+				return 0;
+			}
+			if(typeof a === typeof b) {
+				return a < b ? -1 : 1;
+			}
+			return typeof a < typeof b ? -1: 1;
+		})
+		//m是[4,8,15,16,23,42,'a','aa','bb']
+		Array.splice(start, deleteCount, item...)
+		//splice方法从array中移除一个或多个元素，并用新的item替换它们。参数start是从数组array中移除元素的开始位置。参数deleteCount是要移除的元素个数。如果有额外的参数，那些item都将插入移除元素的位置上。它返回一个包含被移除元素的数组。
+		//splice最主要的用处是从一个数组中删除元素。
+		var a = ['a', 'b', 'c'];
+		var r = a.splice(1, 1, 'ache', 'bug');
+		//a是['a', 'ache', 'bug', 'c'];
+		//r是['r'];
+		Array.unshift(item...)
+		//unshift方法像push方法一样用于将元素添加到数组中，但它是把item插入到array的开始部分而不是尾部。它返回array的新长度：
+		var a = ['a', 'b', 'c'];
+		var r = a.unshift('?', '@');
+		//a是['?', '@', 'a', 'b', 'c']  r是5
+		
+		//2.Function
+		Function.apply(thisArg, argArray)
+		//apply方法调用函数function，传递一个将绑定到this上的对象和一个可选的参数数组。apply方法被用在apply调用模式中。
+		
+		//3.Number
+		Number.toFixed(fractionDigits)
+		//toFixed方法把这个number转化成一个十进制数形式的字符串。可选参数fractionDigits控制其小数点后面的数字位数。它的值必须在0和20之间。默认为0。
+		Number.toString(radix)
+		//toString方法把这个number转换为一个字符串。可选参数radix控制基数(进制数)。
+		
+		//4.Object
+		Object.hasOwnProperty(name)
+		//如果这个object包含了一个名为name的属性，那么hasOwnProperty方法返回true。原型链中的同名属性是不会被检查的。这个方法对name就是hasOwnProperty时不起作用，此时会返回false。
+		
+		//5.RegExp
+		RegExp.exec(string)
+		//exec方法是使用正则表达式的最强大(和最慢)的方法。如果它成功地匹配regexp和字符串string，它就会返回一个数组。数组中下标为0的元素将包含正则表达式regexp匹配的子字符串。下标为1的元素是分组1捕获的文本，以此类推。如果匹配失败，那么它会返回null。
+		RegExp.test(string)
+		//test方法是使用正则表达式的最简单(和最快)的方法。如果该regexp匹配string，它返回true；否则，它返回false。不要对这个方法使用g标识。
+		
+		//6.String
+		String.charAt(pos)
+		//charAt方法返回在string中pos位置处的字符。如果pos小于0或大于等于字符串长度string.length，它会返回空字符串。JS没有字符类型。这个方法返回的结果是一个字符串。
+		String.charCodeAt(pos)
+		//charCodeAt方法同charAt一样，只不过它返回的不是一个字符串，而是以整数形式表示的在string中的pos位置处的字符的字符码位。如果pos小大0或大于等于字符串的长度，它返回NaN。
+		String.concat(string...)
+		//concat方法通过将其他的字符串连接在一起来构造一个新的字符串。它很少被使用，因为+运算符更为方便。
+		String.indexOf(searchString,position)
+		//indexOf方法在string内查找另一个字符串searchString。如果它被找到，则返回第一个匹配字符的位置。否则返回-1.可选参数position可设置从string的某个指定位置开始查找。
+		String.lastIndexOf(searchString,position)
+		//lastIndexOf方法和indexOf方法类似，只不过它是从该字符串的末尾开始查找而不是从开头。
+		String.match(regexp)
+		//match方法匹配一个字符串和一个正则表达式。它依据g标识来决定如何进行匹配。如果没有g标识，那么调用string.match(regexp)的结果与调用regexp.exec(string)的结果相同。然而，如果regexp带有g标识，那么它返回一个包含除捕获分组之外的所有匹配的数组。
+		String.replace(searchValue,replaceValue)
+		//replace方法对string进行查找和替换的操作，并返回一个新的字符串。参数searchValue可以是一个字符串或一个正则表达式对象。如果它是一个字符串，那么searchValue只会在第一次出现的地方被替换。
+		//如果searchValue是一个正则表达式并且带有g标志，那么它将替换所有匹配之处。如果它没有带g标志，那么它将仅替换第一个匹配之处。
+		String.search(regexp)
+		//search方法和indexOf方法类似，只是它接受一个正则表达式对象作为参数而不是一个字符串。如果找到匹配，它返回第一个匹配的首字符位置，如果没有找到匹配，则返回-1.此方法会忽略g标志，且没有position参数。
+		String.slice(start,end)
+		//slice方法复制string的一部分来构造一个新的字符串。如果start参数是负数，它将与string.length相加。end参数是可选的，并且它的默认值是string.length。如果end参数是负数，那么它将与string.length相加。end参数是一个比最末一个字符的位置值还大数。如果想得到从位置p开始的n个字符，就用string.slice(p, p + n)。
+		String.split(separator, limit)
+		//split方法把这个string分隔成片段来创建一个字符串数组。可选参数limit可以限制被分隔的片段数量。separator参数可以是一个字符串或一个正则表达式。
+		//如果separator是一个空字符串，将返回一个单字符的数组。
+		//否则，此方法会在string中查找所有separator出现的地方。分隔符两边的每个单元文本都会被复制到该数组中。此方法会忽略g标志。
+		String.substring(start,end)
+		//substring的用法和slice方法一样，只是它不能处理负数参数。没有任何理由去使用substring方法。
+		String.toLocaleLowerCase()
+		//toLocaleLowerCase方法返回一个新字符串，它使用本地化的规则把这个string中的所有字母转换为小写格式。
+		String.toLocaleUpperCase()
+		//toLocaleUpperCase方法返回一个新字符串，它使用本地化的规则把这个string中的所有字母转换为大写格式。
+		String.toLowerCase()
+		//toLowerCase方法返回一个新的字符串，这个string中的所有字母都被转化为小写格式。
+		String.toUpperCase()
+		//toUpperCase方法返回一个新的字符串，这个string中的所有字母都被转化为大写格式。
+		String.fromCharCode(char...)
+		//fromCharCode函数从一串数字中返回一个字符串。(二进制码)
+	</script>
+</body>
+</html>

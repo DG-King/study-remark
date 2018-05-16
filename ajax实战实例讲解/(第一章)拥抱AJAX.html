@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>第一章:拥抱Ajax</title>
+</head>
+<body>
+	<script>
+		//1.实例化XMLHttpRequest
+		var xhr;
+		if(document.XmlHttpRequest) {   //检查XHR对象
+			xhr = new XmlHttpRequest();	//创建XHR对象
+		} else {
+			xhr = new ActiveXObject("Microsoft.XMLHTTP");	//创建ActiveX对象
+		}
+
+		//2.发送请求
+		//建立一个对服务器的调用所需要的基本信息需要:
+		//(1)服务器资源的URL;
+		//(2)HTTP请求类型,通常是GET或POST;
+		//(3)服务器所需的参数;
+		//(4)一个JS函数,对服务器返回的结果进行解释和处理
+		//前面两三项要在调用open()方法的时候作为参数传入，该方法会初始化一个指向URL的链接，这个方法有三种重载形式:
+		open(http_method, url); 
+		open(http_mthod, url, asynchronous);
+		open(http_method, url, asynchronous, userid, password)
+		//HTTP的方法有GET、POST、PUT、DELETE、HEAD等
+		//如果asynchronous为true，则代表请求是异步的，否则请求是同步的，同步请求会阻塞浏览器上所有的用户交互，直到响应返回
+		//启用XHR对象的第二步是指派一个回调处理器函数来接受响应，如
+		xhr.onreadystatechange = parseResponse;
+		//注意，我们传递的是一个函数对象的引用。我们此刻并没有调用这个函数
+		//第三步就是调动send()方法。send()执行服务器调用，并能用于发送那些不是由URL指定的附加数据。send()需要的唯一参数就是要在请求主体中发送的附加数据。通常，只有post请求带有主体，对于get请求，我们只需传入一个空字符串：
+		xhr.send('');
+
+		//3.处理响应
+		//上一步我们指派了名称为onreadystatechange的回调处理器，在XHR对象经历的每种就绪状态(ready state)上，回调函数都至少会被调用一次，在onreadystatechange函数中，需要手动检查readyState属性，以此确定当前请求处于生命周期的哪个阶段，以及是否可以开始对最终结果进行处理:
+		//值         状态                          描述
+		//0          Uninitialized(未初始化)       尚未调用open()
+		//1          Loading(正在加载)             已经执行open()但并未send()
+		//2          Loaded(已加载)                已经执行sned()
+		//3			 Interactive(正在交互)         服务器返回了一个数据块
+		//4			 Complete(完成)                请求完成，服务器数据发送完毕
+		//基本上只需要检测readyState == 4，也就是查看请求是否完成。一个典型的回调函数如下：
+		xhr.onreadystatechange = function() {
+			var ready = xhr.readyState;
+			if(ready == 4) {
+				parseCompleteResponse(xhr);
+			}
+		}
+		//在该函数中，我们检测readyState属性的值是否为4，如果是4，就表明响应已经完整到达并可以解析了，我们会将它转给一个解析函数。而在解析响应时，我们首先要知道的就是请求是否成功。
+		//status属性包含了请求的HTTP状态。一个有效的HTTP GET或者POST在所请求的URL得到正确处理后通常会返回200.当URL不存在时，则会返回404.一般来说，任何200到299之间结果代码都表示成功，而其他的代码则表示失败或指示浏览器的进一步动作，通过结合readyState和status，你可以检测出请求是否成功完成。所以可以如下修改我们的函数：
+		xhr.onreadystatechange = function() {
+			var ready = xhr.readyState;
+			if(ready == 4) {
+				var status = xhr.status;
+				if(status >= 200 && status < 300) {
+					parseCompleteResponse(xhr);
+				} else {
+					parseErroredResponse(xhr);
+				}
+			}
+		}
+		//假设我们的响应已经成功返回。下面就可以通过两个属性获取响应：responseText和responseXML。responseText会把响应呈现为一个普通字符串，而responseXML会把响应呈现为一个经过解析的XML文档。
+		
+		//4.XMLHttpRequest的其他方法和属性
+		//XHR还有一些不太常用的方法，一般情况下，你不需要了解它们，但它们对于一些特定的任务来说很有用。
+		//1.abort()
+		//abort()用于在可行情况下中止当前的请求。这只是在客户端中止----只要调用了send()方法，服务器就会收到HTTP请求并处理结果。不过浏览器会忽略结果并停止处理。
+		//2.setRequestHeader(header, value)
+		//该函数这是HTTP请求的首部(header)。它经常被用来设置请求主体的内容类型(content type)。也可以使用任何有效的HTTP首部和值。你可能为许多不同的目的使用这个函数。例如，把请求的MIME类型设为x-www-form-urlencoded，就可以模仿一个HTML表单的POST过程:
+		xhr.setRequestHeader(
+			'Content-type',
+			'application/x-www-form-urlencoded'
+		);
+		//通过Ajax，我们不仅可以向服务器POST键值对，也可以发送XML数据，此时，我们需要告诉服务器，我们在发送XML:
+		xhr.setRequestHeader(
+			'Content-type',
+			'application/xml; chartset=UTF-8'
+		);
+		xhr.send("<data source='ajax in parctice'>hello world</data>");
+		//3.getResponseHeader(header)/getAllResponseHeaders()
+		//一个HTTP请求通常包含许多首部,每个首部都是一个键值对。XHR对象可用getAllResponseHeaders()列出所有部首名，也可以用getResponseHeader()读取特定部首的值，该函数所需参数就是部首的名称。例如，要检测服务器是否是微软的IIS服务器，可以这样：
+		if(xhr.getResponseHeader("Server").indexOf("Microsoft-IIS") != -1) {
+			alert("The server is a Microsoft IIS server.")
+		}
+	</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>第三章：面向对象的JavaScript</title>
+	<style>
+		#testButton {
+			padding: 3px 6px;
+			font-size: 1.1em;
+			border-width: 3px;
+		}
+		.buttonEnabled {
+			background: maroon;
+			border-color: maroon;
+			color: #fff;
+			border-style: outset;
+		}
+		.buttonDisabled {
+			background: #999;
+			border-color: #999;
+			color: #fff;
+			border-style: outset;
+		}
+		.buttonArmed {
+			background: maroon;
+			border-color: maroon;
+			color: orange;
+			border-style: outset;
+		}
+		.buttonPressed {
+			background: #600;
+			border-color: maroon;
+			color: orange;
+			border-style: inset;
+		}
+	</style>
+</head>
+<body>
+	<button type="button" id="testButton">Click me!</button>
+	<div style="margin-top:16px;">
+		<input type="checkbox" onclick="toggleButtonState();">
+		Disable button
+	</div>
+	<script>
+		//1.面向对象的JavaScript
+		/*function Button(element, disabled, onClickCallback, enabledStyleClass, disabledStyleClass, armedStyleClass, pressedStyleClass)
+
+		new Button('myButton', {
+			onClick: doSomethig,
+			pressedClassName: 'pressedButton'
+		})*/
+
+		function Button(elementName, options) {
+			this.element = document.getElementById(elementName);
+			if(!this.element) {
+				throw new Error(elementName + ' not Found');
+			}
+			this.element.button = this;
+			this.options = options || {};
+			if(options) {
+				this.options.enabled = options.enabled || true;
+				this.options.onClick = options.onClick || function () {};
+				this.options.enabledClassName = options.enabledClassName || this.CLASS_DEFAULT_ENABLED;
+				this.options.disabledClassName = options.disabledClassName || this.CLASS_DEFAULT_DISABLED;
+				this.options.armedClassName = options.armedClassName || this.CLASS_DEFAULT_CLASS_ARMED;
+				this.options.pressedClassName = options.pressedClassName || this.CLASS_DEFAULT_CLASS_PRESSED;
+			}
+			var instance = this;
+			this.element.onclick = function () {
+				if(instance.options.enabled) {
+					instance.options.onClick.call(instance);
+				}
+			}
+			this.element.onmouseover = this.onArm;
+			this.element.onmouseout = this.onDisarm;
+			this.element.onmousedown = this.onPress;
+			this.element.onmouseup = this.onRelease;
+			if(this.options.enabled) {
+				this.enabled();
+			}else {
+				this.disabled();
+			}
+		}
+		
+		Button.prototype.CLASS_DEFAULT_ENABLED = 'buttonEnabled';
+		Button.prototype.CLASS_DEFAULT_CLASS_ARMED = 'buttonArmed';
+		Button.prototype.CLASS_DEFAULT_DISABLED = 'buttonDisabled';
+		Button.prototype.CLASS_DEFAULT_CLASS_PRESSED = 'buttonPressed';
+
+		Button.prototype.onArm = function() {
+			if(this.button.options.enabled) {
+				this.className = this.button.options.armedClassName;
+			}
+		}
+		Button.prototype.onDisarm = function() {
+			if(this.button.options.enabled) {
+				this.className = this.button.options.enabledClassName;
+			}
+		}
+		Button.prototype.onPress = function() {
+			if(this.button.options.enabled) {
+				this.className = this.button.options.pressedClassName;
+			}
+		}
+		Button.prototype.onRelease = function() {
+			if(this.button.options.enabled) {
+				this.className = this.button.options.enabledClassName;
+			}
+		}
+		Button.prototype.isEnabled = function() {
+			return this.options.enabled;
+		}
+		Button.prototype.enabled = function() {
+			this.options.enabled = true;
+			this.element.disabled = false;
+			this.element.className = this.options.enabledClassName;
+		}
+		Button.prototype.disabled = function() {
+			this.options.enabled = false;
+			this.element.disabled = true;
+			this.element.className = this.options.disabledClassName;
+		}
+	</script>
+	<script>
+		window.onload = function() {
+			window.testButton = new Button(
+				'testButton',
+				{
+					onClick: onClicked
+				}
+			)
+		}
+		function onClicked() {
+			alert('Button ' + this.element.id + ' has been clicked');
+		}
+		function toggleButtonState() {
+			if(window.testButton.isEnabled()) {
+				window.testButton.disabled();
+			}
+			else {
+				window.testButton.enabled();
+			}
+		}
+	</script>
+</body>
+</html>
