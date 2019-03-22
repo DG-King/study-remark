@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>第三章：实战</title>
+</head>
+<body>
+    <script>
+        // 本章主要讲解各个不同的项目在webpack中的实践
+
+        // 1 使用 ES6 语言
+        // 通常我们需要把采用 ES6 编写的代码转换成目前已经支持良好的 ES5 代码，这包含2件事：
+        // 把新的 ES6 语法用 ES5 实现，例如 ES6 的 class 语法用 ES5 的 prototype 实现。
+        // 给新的 API 注入 polyfill ，例如项目使用 fetch API 时，只有注入对应的 polyfill 后，才能在低版本浏览器中正常运行。
+        // Babel
+        // Babel 可以方便的完成以上2件事。 Babel 是一个 JavaScript 编译器，能将 ES6 代码转为 ES5 代码，让你使用最新的语言特性而不用担心兼容性问题，并且可以通过插件机制根据需求灵活的扩展。 
+        // 在 Babel 执行编译的过程中，会从项目根目录下的 .babelrc 文件读取配置。.babelrc 是一个 JSON 格式的文件。
+        // Plugins
+        // plugins 属性告诉 Babel 要使用哪些插件，插件可以控制如何转换代码。
+        // Presets
+        // presets 属性告诉 Babel 要转换的源码使用了哪些新的语法特性，一个 Presets 对一组新语法特性提供支持，多个 Presets 可以叠加。
+        // Presets 其实是一组 Plugins 的集合，每一个 Plugin 完成一个新语法的转换工作。
+
+        // 2 使用 TypeScript 语言 
+        // TypeScript 是 JavaScript 的一个超集，主要提供了类型检查系统和对 ES6 语法的支持，但不支持新的 API。 目前没有任何环境支持运行原生的 TypeScript 代码，必须通过构建把它转换成 JavaScript 代码后才能运行。
+        // TypeScript 官方提供了能把 TypeScript 转换成 JavaScript 的编译器。 你需要在当前项目根目录下新建一个用于配置编译选项的 tsconfig.json 文件，编译器默认会读取和使用这个文件。
+        // 减少代码冗余
+        // TypeScript 编译器会有和在 3-1 使用ES6语言中 Babel 一样的问题：在把 ES6 语法转换成 ES5 语法时需要注入辅助函数， 为了不让同样的辅助函数重复的出现在多个文件中，可以开启 TypeScript 编译器的 importHelpers 选项。
+        // 集成 Webpack
+        // 要让 Webpack 支持 TypeScript，需要解决以下2个问题：
+        // 1.通过 Loader 把 TypeScript 转换成 JavaScript。
+        // 2.Webpack 在寻找模块对应的文件时需要尝试 ts 后缀。
+
+        // 3 使用 Flow 检查器
+        // Flow 是一个 Facebook 开源的 JavaScript 静态类型检测器，它是 JavaScript 语言的超集。 
+        // 你所需要做的就是在需要的地方加上类型检查，例如在两个由不同人开发的模块对接的接口出加上静态类型检查，能在编译阶段就指出部分模块使用不当的问题。 
+        // 同时 Flow 也能通过类型推断检查出 JavaScript 代码中潜在的 Bug。
+        // 需要注意的时代码中的第一行 // @flow 告诉 Flow 检查器这个文件需要被检查。
+        // 集成 Webpack
+        // 由于使用了 Flow 项目一般都会使用 ES6 语法，所以把 Flow 集成到使用 Webpack 构建的项目里最方便的方法是借助 Babel
+        // 要明确构建的目的只是为了去除源码中的 Flow 静态类型语法，而代码检查和构建无关。 许多编辑器已经整合 Flow，可以实时在代码中高亮指出 Flow 检查出的问题。
+
+        // 4 使用 SCSS 语言
+        // SCSS 可以让你用更灵活的方式写 CSS。 它是一种 CSS 预处理器，语法和 CSS 相似，但加入了变量、逻辑、等编程元素
+        // SCSS 又叫 SASS，区别在于 SASS 语法类似 Ruby，而 SCSS 语法类似 CSS，对于熟悉 CSS 的前端工程师来说会更喜欢 SCSS。
+        // 采用 SCSS 去写 CSS 的好处在于可以方便地管理代码，抽离公共的部分，通过逻辑写出更灵活的代码。 和 SCSS 类似的 CSS 预处理器还有 LESS 等。
+        // 接入 Webpack
+        // 由于需要把 SCSS 源代码转换成 CSS 代码，之前介绍过转换文件最适合的方式是使用 Loader，Webpack 官方提供了对应的 sass-loader。
+        // 具体处理流程如下：
+        // 通过 sass-loader 把 SCSS 源码转换为 CSS 代码，再把 CSS 代码交给 css-loader 去处理。
+        // css-loader 会找出 CSS 代码中的 @import 和 url() 这样的导入语句，告诉 Webpack 依赖这些资源。同时还支持 CSS Modules、压缩 CSS 等功能。处理完后再把结果交给 style-loader 去处理。
+        // style-loader 会把 CSS 代码转换成字符串后，注入到 JavaScript 代码中去，通过 JavaScript 去给 DOM 增加样式。如果你想把 CSS 代码提取到一个单独的文件而不是和 JavaScript 混在一起，可以使用ExtractTextPlugin。
+
+        // 5 使用 PostCSS
+        // PostCSS 是一个 CSS 处理工具，和 SCSS 不同的地方在于它通过插件机制可以灵活的扩展其支持的特性，而不是像 SCSS 那样语法是固定的。 PostCSS 的用处非常多，包括给 CSS 自动加前缀、使用下一代 CSS 语法等，目前越来越多的人开始用它，它很可能会成为 CSS 预处理器的最终赢家。
+        // PostCSS 和 CSS 的关系就像 Babel 和 JavaScript 的关系，它们解除了语法上的禁锢，通过插件机制来扩展语言本身，用工程化手段给语言带来了更多的可能性。
+        // PostCSS 和 SCSS 的关系就像 Babel 和 TypeScript 的关系，PostCSS 更加灵活、可扩张性强，而 SCSS 内置了大量功能而不能扩展。
+        // 接入 Webpack
+        // 虽然使用 PostCSS 后文件后缀还是 .css 但这些文件必须先交给 postcss-loader 处理一遍后再交给 css-loader。
+
+        // 6 使用 React 框架
+        // 要在使用 Babel 的项目中接入 React 框架是很简单的，只需要加入 React 所依赖的 Presets babel-preset-react。
+        // TypeScript 相比于 Babel 的优点在于它原生支持 JSX 语法，你不需要重新安装新的依赖，只需修改一行配置。 但 TypeScript 的不同在于：
+        // 使用了 JSX 语法的文件后缀必须是 tsx。
+        // 由于 React 不是采用 TypeScript 编写的，需要安装 react 和 react-dom 对应的 TypeScript 接口描述模块 @types/react 和 @types/react-dom 后才能通过编译。
+
+        // 7 使用 Vue 框架
+        // Vue 是一个渐进式的 MVVM 框架，相比于 React、Angular 它更灵活轻量。 它不会强制性地内置一些功能和语法，你可以根据自己的需要一点点地添加功能。 
+        // 接入 Webpack
+        // 目前最成熟和流行的开发 Vue 项目的方式是采用 ES6 加 Babel 转换，这和基本的采用 ES6 开发的项目很相似，差别在于要解析 .vue 格式的单文件组件。 
+        // 好在 Vue 官方提供了对应的 vue-loader 可以非常方便的完成单文件组件的转换。
+        // 在vue-loader css-loader vue-template-compiler这些依赖中，它们的作用分别是：
+        // vue-loader：解析和转换 .vue 文件，提取出其中的逻辑代码 script、样式代码 style、以及 HTML 模版 template，再分别把它们交给对应的 Loader 去处理。
+        // css-loader：加载由 vue-loader 提取出的 CSS 代码。
+        // vue-template-compiler：把 vue-loader 提取出的 HTML 模版编译成对应的可执行的 JavaScript 代码，这和 React 中的 JSX 语法被编译成 JavaScript 代码类似。预先编译好 HTML 模版相对于在浏览器中再去编译 HTML 模版的好处在于性能更好。
+        // 使用 TypeScript 编写 Vue 应用
+        // 从 Vue 2.5.0+ 版本开始，提供了对 TypeScript 的良好支持，使用 TypeScript 编写 Vue 是一个很好的选择，因为 TypeScript 能检查出一些潜在的错误。 
+
+        // 8 使用 Angular2 框架
+        // Angular2 是 AngularJS 的下一个版本，它继承了 AngularJS 中的部分思想又加入了一些新的改进。 
+        // Angular2 相比于 React 和 Vue 来说要复杂很多，这三者的出发点都是组件化和数据驱动视图，但 Angular2 多出了以下概念：
+        // 模块（NgModule）这里的模块不是指 JavaScript 或者其它编程语言里的模块化，而是指 Angular2 里提出的独有的用法。
+        // 注解（Decorator）通过注解语法 @XXX 来给一个 Class 附加元数据。
+        // 服务（Service）按照功能划分，把项目中可复用的重复代码封装成一个个服务以方便给其它模块使用。服务可以包含函数、常值等，常见的有日志服务、数据服务、应用程序配置等。
+        // 依赖注入（Dependency Injection）也叫控制反转（Inversion of Control），是面向对象编程中的一种设计原则，可以用来减低代码之间的耦合度。
+        // 接入 Webpack
+        // 由于 Angular2 应用采用 TypeScript 开发，构建和前面讲过的使用 TypeScript 语言 类似，不同在于 tsconfig.json 配置。
+
+        // 9 为单页应用生成 HTML
+        //  web-webpack-plugin 解决实际项目中单页面加载许多资源的问题
+
+        // 10 管理多个单页应用
+        //  web-webpack-plugin 插件也内置了解决这个问题的方法，它的 WebPlugin可以解决单页面应用， 它的 AutoWebPlugin 来解决多个单页应用问题，使用方法非常简单
+
+        // 11 构建同构应用
+        // 同构应用是指写一份代码但可同时在浏览器和服务器中运行的应用。
+        // 现在大多数单页应用的视图都是通过 JavaScript 代码在浏览器端渲染出来的，但在浏览器端渲染的坏处有：
+        // 搜索引擎无法收录你的网页，因为展示出的数据都是在浏览器端异步渲染出来的，大部分爬虫无法获取到这些数据。
+        // 对于复杂的单页应用，渲染过程计算量大，对低端移动设备来说可能会有性能问题，用户能明显感知到首屏的渲染延迟。
+        // 为了解决以上问题，有人提出能否将原本只运行在浏览器中的 JavaScript 渲染代码也在服务器端运行，在服务器端渲染出带内容的 HTML 后再返回。 
+        // 这样就能让搜索引擎爬虫直接抓取到带数据的 HTML，同时也能降低首屏渲染时间。 由于 Node.js 的流行和成熟，以及虚拟 DOM 提出与实现，使这个假设成为可能。
+        // 同构应用运行原理的核心在于虚拟 DOM，虚拟 DOM 的意思是不直接操作 DOM 而是通过 JavaScript Object 去描述原本的 DOM 结构。 在需要更新 DOM 时不直接操作 DOM 树，而是通过更新 JavaScript Object 后再映射成 DOM 操作。
+        // 虚拟 DOM 的优点在于：
+        // 因为操作 DOM 树是高耗时的操作，尽量减少 DOM 树操作能优化网页性能。而 DOM Diff 算法能找出2个不同 Object 的最小差异，得出最小 DOM 操作；
+        // 虚拟 DOM 的在渲染的时候不仅仅可以通过操作 DOM 树来表示出结果，也能有其它的表示方式，例如把虚拟 DOM 渲染成字符串(服务器端渲染)，或者渲染成手机 App 原生的 UI 组件( React Native)。
+
+        // 12 构建 Electron 应用
+        // Electron 可以让你使用开发 Web 的技术去开发跨平台的桌面端应用，由 Github 主导和开源，大家熟悉的 Atom 和 VSCode 编辑器就是使用 Electron 开发的。
+        // 采用这种方式开发桌面端应用的优点有：
+        // 降低开发门槛，只需掌握网页开发技术和 Node.js 即可，大量的 Web 开发技术和现成库可以复用于 Electron；
+        // 由于 Chromium 浏览器和 Node.js 都是跨平台的，Electron 能做到写一份代码在不同的操作系统运行。
+
+        // 13 构建 Npm 模块
+        // Npm 是目前最大的 JavaScript 模块仓库，里面有来自全世界开发者上传的可复用模块。 虽然大多数情况下你都是这些开放模块的使用者，但有时候你也许会成为贡献者，开发一个模块上传到 Npm 仓库。
+
+        // 14 构建离线应用
+        // 你的网页性能优化的再好，如果网络不好那也会导致网页的体验差。 离线应用是指通过离线缓存技术，让资源在第一次被加载后缓存在本地，下次访问它时就直接返回本地的文件，就算没有网络连接。
+        // 离线应用有以下优点：
+        // 在没有网络的情况下也能打开网页。
+        // 由于部分被缓存的资源直接从本地加载，对用户来说可以加速网页加载速度，对网站运营者来说可以减少服务器压力以及传输流量费用。
+        // Service Workers 相比于 AppCache 来说更加灵活，因为它可以通过 JavaScript 代码去控制缓存的逻辑
+        // Service Workers 是一个在浏览器后台运行的脚本，它生命周期完全独立于网页。它无法直接访问 DOM，但可以通过 postMessage 接口发送消息来和 UI 进程通信。
+        //  拦截网络请求是 Service Workers 的一个重要功能，通过它能完成离线缓存、编辑响应、过滤响应等功能。
+
+        // 15 搭配 Npm Script
+        // Npm Script 是一个任务执行者。 Npm 是在安装 Node.js 时附带的包管理器，Npm Script 则是 Npm 内置的一个功能，允许在 package.json 文件里面使用 scripts 字段定义任务
+        // Webpack 为什么需要 Npm Script
+        // Webpack 只是一个打包模块化代码的工具，并没有提供任何任务管理相关的功能。 但在实际场景中通常不会是只通过执行 webpack 就能完成所有任务的，而是需要多个任务才能完成。
+
+        // 16 检查代码
+        // 当项目代码变得日益庞大复杂时，如何保障代码质量？如何保障多人协助开发时代码的可读性？
+        // 检查代码和 Code Review 很相似，都是去审视提交的代码可能存在的问题。 但 Code Review 一般通过人去执行，而检查代码是通过机器去执行一些自动化的检查。 自动化的检查代码成本更低，实施代价更小。
+        // 检查代码主要检查以下几项：
+        // 代码风格：让项目成员强制遵守统一的代码风格，例如如何缩进、如何写注释等，保障代码可读性，不把时间浪费在争论如何写代码更好看上；
+        // 潜在问题：分析出代码在运行过程中可能出现的潜在 Bug。
+        // 目前最常用的 JavaScript 检查工具是 ESlint ，它不仅内置了大量常用的检查规则，还可以通过插件机制做到灵活扩展。
+        // TSLint 是一个和 ESlint 相似的 TypeScript 代码检查工具，区别在于 TSLint 只专注于检查 TypeScript 代码。
+        // stylelint 是目前最成熟的 CSS 检查工具，内置了大量检查规则的同时也提供插件机制让用户自定义扩展。 stylelint 基于 PostCSS，能检查任何 PostCSS 能解析的代码，诸如 SCSS、Less 等。
+        // 一些建议
+        // 把代码检查功能整合到 Webpack 中会导致以下问题：
+        // 由于执行检查步骤计算量大，整合到 Webpack 中会导致构建变慢；
+        // 在整合代码检查到 Webpack 后，输出的错误信息是通过行号来定位错误的，没有编辑器集成显示错误直观；
+        // 为了避免以上问题，还可以这样做：
+        // 使用集成了代码检查功能的编辑器，让编辑器实时直观地显示错误；
+        // 把代码检查步骤放到代码提交时，也就是说在代码提交前去调用以上检查工具去检查代码，只有在检查都通过时才提交代码，这样就能保证提交到仓库的代码都是通过了检查的。
+
+        // 17 通过 Node.js API 启动 Webpack
+        // Webpack 除了提供可执行的命令行工具外，还提供可在 Node.js 环境中调用的库。 通过 Webpack 暴露的 API，可直接在 Node.js 程序中调用 Webpack 执行构建。
+
+        // 18 使用 Webpack Dev Middleware
+        // 之前介绍过的 DevServer 是一个方便开发的小型 HTTP 服务器， DevServer 其实是基于 webpack-dev-middleware 和 Expressjs 实现的， 而 webpack-dev-middleware 其实是 Expressjs 的一个中间件。
+
+        // 19 加载图片
+        // 在网页中不可避免的会依赖图片资源，例如 PNG、JPG、GIF，下面来教你如何用 Webpack 加载图片资源。
+        // file-loader 可以把 JavaScript 和 CSS 中导入图片的语句替换成正确的地址，并同时把文件输出到对应的位置。
+        // url-loader 可以把文件的内容经过 base64 编码后注入到 JavaScript 或者 CSS 中去。
+        // 通过 imagemin-webpack-plugin 压缩图片；
+        // 通过 webpack-spritesmith 插件制作雪碧图。
+        // 以上加载图片的方法同样适用于其它二进制类型的资源，例如 PDF、SWF 等等。
+
+        // 20 加载 SVG
+        // SVG 作为矢量图的一种标准格式，已经得到了各大浏览器的支持，它也成为了 Web 中矢量图的代名词。 在网页中采用 SVG 代替位图有如下好处：
+        // SVG 相对于位图更清晰，在任意缩放的情况下后不会破坏图形的清晰度，SVG 能方便地解决高分辨率屏幕下图像显示不清楚的问题。
+        // 在图形线条比较简单的情况下，SVG 文件的大小要小于位图，在扁平化 UI 流行的今天，多数情况下 SVG 会更小。
+        // 图形相同的 SVG 比对应的高清图有更好的渲染性能。
+        // SVG 采用和 HTML 一致的 XML 语法描述，灵活性很高。
+        // raw-loader 可以把文本文件的内容读取出来，注入到 JavaScript 或 CSS 中去。
+        // svg-inline-loader 和上面提到的 raw-loader 非常相似， 不同在于 svg-inline-loader 会分析 SVG 的内容，去除其中不必要的部分代码，以减少 SVG 的文件大小。
+
+        // 21 加载 Source Map
+        // 由于在开发过程中经常会使用新语言去开发项目，最后会把源码转换成能在浏览器中直接运行的 JavaScript 代码。 这样做虽能提升开发效率，在调试代码的过程中你会发现生成的代码可读性非常差，这给代码调试带来了不便。
+        // Webpack 支持为转换生成的代码输出对应的 Source Map 文件，以方便在浏览器中能通过源码调试。 控制 Source Map 输出的 Webpack 配置项是 devtool，它有很多选项。
+        // 在开发环境下把 devtool 设置成 cheap-module-eval-source-map，因为生成这种 Source Map 的速度最快，能加速构建。由于在开发环境下不会做代码压缩，Source Map 中即使没有列信息也不会影响断点调试；
+        // 在生产环境下把 devtool 设置成 hidden-source-map，意思是生成最详细的 Source Map，但不会把 Source Map 暴露出去。由于在生产环境下会做代码压缩，一个 JavaScript 文件只有一行，所以需要列信息。
+
+        // 22 实战总结
+        // 在实际应用中，会遇到各种各样的需求，虽然前面的小节中已经给出了大部分场景需求的解决方案，但还是很难涵盖所有的可能性。 
+        // 所以你自己需要有能力去分析遇到的问题，然后去寻找对应的解决方案，你可以按照以下思路去分析和解决问题：
+        // 对所面临的问题本身要了解。例如在用 Webpack 去构建 React 应用时你需要先掌握 React 的基础知识。
+        // 找出现实和目标之间的差异。例如在 React 应用的源码中用到了 JSX 语法和 ES6 语法，需要把源码转换成 ES5。
+        // 找出从现实到目标的可能路径。例如把新语法转换成 ES5 可以使用 Babel 去转换源码。
+        // 搜索社区中有没有现成的针对可能路径的 Webpack 集成方案。例如社区中已经有 babel-loader。
+        // 如果找不到现成的方案说明你的需求非常特别，这时候你就需要编写自己的 Loader 或者 Plugin 了
+        // 在解决问题的过程中有以下2点能力很重要：
+        // 从一个知识你需要尽可能多的联想到其相关连的知识，这有利于打通你的知识体系,从经验中更快地得出答案。
+        // 善于使用搜索引擎去寻找你所面临的问题，这有利于借助他人的经验更快地得出答案，而不是自己重新探索。
+    </script>
+</body>
+</html>
