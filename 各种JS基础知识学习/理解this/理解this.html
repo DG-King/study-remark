@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>理解this、call、apply和bind</title>
+</head>
+<body>
+    <script>
+        // this是js里面的一个关键字，也是很重要的一部分，很多人在this上面搞不清。
+        // 其实归根结底，理解this就一个重点：谁调用this，this就指向谁。
+
+        // this的一些基本场景：
+        // 1.纯粹的函数调用
+        // 这是函数的最通常用法，属于全局性调用，因此this就代表全局对象。
+        function demo() {
+            console.log(this); //this指向window
+        }
+        demo()
+        // 2.作为对象方法的调用
+        // 这时候调动该方法的是对象，所以this指向该对象。
+        var obj = {
+            age: 1,
+            test: function() {
+                console.log(this);//this指向obj
+            }
+        }
+        obj.test();
+        // 3.作为构造函数调用
+        // 所谓构造函数，就是通过这个函数，可以生成一个新对象。这时，this就指这个新对象。
+        function test() {
+            this.x = 1;
+        }
+        var obj = new test();
+        obj.x; //1
+        // 4.call、apply、bind调用
+        // call、apply、bind是函数的方法，作用是改变函数的调用对象。它的第一个参数就表示改变后的调用这个函数的对象。因此，这时this指的就是这第一个参数。
+        // 如果没有传参，则默认为window对象。
+
+
+        // 重点：call、apply、bind解析
+        // 相同点：都是可以改变this的指向。
+        // 不同点：call传参是一个一个传，apply传参是传数组、bind传参也是一个一个传。但是bind和call、apply的最大的不同是bind返回的是一个函数，call、apply是立即调用函数，所以bind绑定之后如果需要执行的话必须调用该函数。
+        // 简单实现以下call、apply和bind。
+        // 其实原理就是使该方法绑定到对象中，然后对象.方法调用，则此时的this将会指向绑定的对象,然后调用完方法之后将该方法删除即可。
+        // 几个注意点就是，指向对象是否为对象，考虑传参，以及新增方法不重名。
+        Function.prototype.newCall = function(context, ...parameter)
+        {
+            if(typeof context === "object")
+            {
+                context = context || window;
+            }
+            else
+            {
+                context = Object.create(null);
+            }
+            let fn = Symbol();
+            context[fn] = this;
+            context[fn](...parameter);
+            delete context[fn];
+        }
+        Function.prototype.newApply = function(context, parameter)
+        {
+            if(typeof context === "object")
+            {
+                context = context || window;
+            }
+            else
+            {
+                context = Object.create(null);
+            }
+            let fn = Symbol();
+            context[fn] = this;
+            context[fn](...parameter);
+            delete context[fn];
+        }
+        Function.prototype.newBind = function(context, ...parameter)
+        {
+            let me = this;
+            return function (...finlayArgs) {
+                return me.call(context, ...parameter, ...finlayArgs);
+            }
+        }
+    </script>
+</body>
+</html>
